@@ -6,20 +6,101 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>980</width>
     <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Note Manager</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QGroupBox" name="folderGroupBox">
+      <property name="title">
+       <string>Folders</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_1">
+       <item>
+        <widget class="QListWidget" name="folderList"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="addFolderButton">
+         <property name="text">
+          <string>Add Folder</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="deleteFolderButton">
+         <property name="text">
+          <string>Delete Folder</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="noteGroupBox">
+      <property name="title">
+       <string>Notes</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QListWidget" name="noteList"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="addNoteButton">
+         <property name="text">
+          <string>Add Note</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="deleteNoteButton">
+         <property name="text">
+          <string>Delete Note</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="editorGroupBox">
+      <property name="title">
+       <string>Note Editor</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QTextEdit" name="noteEditor"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="saveNoteButton">
+         <property name="text">
+          <string>Save Note</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="summarizeButton">
+         <property name="text">
+          <string>Summarize</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>980</width>
      <height>21</height>
     </rect>
    </property>
