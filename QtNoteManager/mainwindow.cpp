@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->addNoteButton, &QPushButton::clicked, this, &MainWindow::onAddNoteClicked);
     connect(ui->deleteNoteButton, &QPushButton::clicked, this, &MainWindow::onDeleteNoteClicked);
     connect(ui->saveNoteButton, &QPushButton::clicked, this, &MainWindow::onSaveNoteClicked);
+    connect(ui->summarizeButton, &QPushButton::clicked, this, &MainWindow::onSummarizeClicked);
 
     connect(ui->folderList, &QListWidget::currentRowChanged, this, &MainWindow::onFolderSelectionChanged);
     connect(ui->noteList, &QListWidget::currentRowChanged, this, &MainWindow::onNoteSelectionChanged);
@@ -179,3 +180,54 @@ void MainWindow::onSaveNoteClicked()
     updateNoteList();
     saveData();
 }
+
+void MainWindow::onSummarizeClicked()
+{
+    if (currentFolderIndex < 0 || currentNoteIndex < 0) return;
+    QString content = folders[currentFolderIndex].notes[currentNoteIndex].content;
+    if (content.isEmpty()) return;
+    sendSummaryRequest(content);
+}
+
+void MainWindow::sendSummaryRequest(const QString &text)
+{
+    QString prompt = "Please summarize the following text in English:\n" + text;
+    qDebug() << "Prompt sent to Ollama:" << prompt;
+
+    QUrl url("http://localhost:11434/api/generate");
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    QJsonObject requestData;
+    requestData["model"] = "llama3.2";
+    requestData["prompt"] = prompt;
+    requestData["stream"] = false;
+
+    QJsonDocument doc(requestData);
+    QByteArray jsonData = doc.toJson();
+
+    QNetworkReply* reply = networkManager->post(request, jsonData);
+
+    connect(reply, &QNetworkReply::finished, this, [=]() {
+        if (reply->error() != QNetworkReply::NoError) {
+            qDebug() << "Network error:" << reply->errorString();
+            QMessageBox::warning(this, "Error", "Failed to get summary from Ollama.");
+            reply->deleteLater();
+            return;
+        }
+
+        QByteArray responseData = reply->readAll();
+        QJsonDocument responseDoc = QJsonDocument::fromJson(responseData);
+
+        if (responseDoc.isObject() && responseDoc.object().contains("response")) {
+            QString summary = responseDoc.object().value("response").toString();
+            ui->noteEditor->setPlainText(summary);
+        } else {
+            qDebug() << "Invalid JSON response:" << responseData;
+            QMessageBox::warning(this, "Error", "Unexpected response from Ollama.");
+        }
+
+        reply->deleteLater();
+    });
+}
+

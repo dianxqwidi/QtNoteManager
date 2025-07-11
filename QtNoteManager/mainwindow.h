@@ -5,6 +5,7 @@
 #include <QList>
 #include <QString>
 #include <QNetworkAccessManager>
+#include <QNetworkReply>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -24,6 +25,8 @@ private slots:
     void onAddNoteClicked();
     void onDeleteNoteClicked();
     void onSaveNoteClicked();
+    void onSummarizeClicked();
+    void sendSummaryRequest(const QString &text);
 
     void onFolderSelectionChanged();
     void onNoteSelectionChanged();
