@@ -18,6 +18,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->addFolderButton, &QPushButton::clicked, this, &MainWindow::onAddFolderClicked);
     connect(ui->deleteFolderButton, &QPushButton::clicked, this, &MainWindow::onDeleteFolderClicked);
+    connect(ui->addNoteButton, &QPushButton::clicked, this, &MainWindow::onAddNoteClicked);
+    connect(ui->deleteNoteButton, &QPushButton::clicked, this, &MainWindow::onDeleteNoteClicked);
+    connect(ui->saveNoteButton, &QPushButton::clicked, this, &MainWindow::onSaveNoteClicked);
 
     connect(ui->folderList, &QListWidget::currentRowChanged, this, &MainWindow::onFolderSelectionChanged);
     connect(ui->noteList, &QListWidget::currentRowChanged, this, &MainWindow::onNoteSelectionChanged);
@@ -145,4 +148,34 @@ void MainWindow::onDeleteFolderClicked()
     updateFolderList();
     updateNoteList();
     updateNoteEditor();
+}
+
+void MainWindow::onAddNoteClicked()
+{
+    if (currentFolderIndex < 0 || currentFolderIndex >= folders.size()) return;
+    bool ok;
+    QString title = QInputDialog::getText(this, "Add Note", "Note title:", QLineEdit::Normal, "", &ok);
+    if (ok && !title.isEmpty()) {
+        folders[currentFolderIndex].notes.append({title, ""});
+        currentNoteIndex = folders[currentFolderIndex].notes.size() - 1;
+        updateNoteList();
+        updateNoteEditor();
+    }
+}
+
+void MainWindow::onDeleteNoteClicked()
+{
+    if (currentFolderIndex < 0 || currentNoteIndex < 0) return;
+    folders[currentFolderIndex].notes.removeAt(currentNoteIndex);
+    currentNoteIndex = qMin(currentNoteIndex, folders[currentFolderIndex].notes.size() - 1);
+    updateNoteList();
+    updateNoteEditor();
+}
+
+void MainWindow::onSaveNoteClicked()
+{
+    if (currentFolderIndex < 0 || currentNoteIndex < 0) return;
+    folders[currentFolderIndex].notes[currentNoteIndex].content = ui->noteEditor->toPlainText();
+    updateNoteList();
+    saveData();
 }

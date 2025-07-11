@@ -21,6 +21,10 @@ public:
 private slots:
     void onAddFolderClicked();
     void onDeleteFolderClicked();
+    void onAddNoteClicked();
+    void onDeleteNoteClicked();
+    void onSaveNoteClicked();
+
     void onFolderSelectionChanged();
     void onNoteSelectionChanged();
 
