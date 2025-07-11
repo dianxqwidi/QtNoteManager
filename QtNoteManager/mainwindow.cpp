@@ -71,3 +71,53 @@ void MainWindow::onNoteSelectionChanged() {
     currentNoteIndex = ui->noteList->currentRow();
     updateNoteEditor();
 }
+
+void MainWindow::loadData()
+{
+    QFile file("notes.json");
+    if (!file.open(QIODevice::ReadOnly)) return;
+
+    QByteArray data = file.readAll();
+    file.close();
+
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    if (!doc.isObject()) return;
+
+    folders.clear();
+    QJsonObject root = doc.object();
+    for (const QString &key : root.keys()) {
+        Folder folder;
+        folder.name = key;
+        QJsonArray notesArray = root[key].toArray();
+        for (const QJsonValue &noteVal : notesArray) {
+            QJsonObject noteObj = noteVal.toObject();
+            Note note;
+            note.title = noteObj["title"].toString();
+            note.content = noteObj["content"].toString();
+            folder.notes.append(note);
+        }
+        folders.append(folder);
+    }
+}
+
+void MainWindow::saveData()
+{
+    QFile file("notes.json");
+    if (!file.open(QIODevice::WriteOnly)) return;
+
+    QJsonObject root;
+    for (const Folder &folder : folders) {
+        QJsonArray notesArray;
+        for (const Note &note : folder.notes) {
+            QJsonObject obj;
+            obj["title"] = note.title;
+            obj["content"] = note.content;
+            notesArray.append(obj);
+        }
+        root[folder.name] = notesArray;
+    }
+
+    QJsonDocument doc(root);
+    file.write(doc.toJson());
+    file.close();
+}

@@ -39,6 +39,8 @@ private:
     int currentFolderIndex = -1;
     int currentNoteIndex = -1;
 
+    void loadData();
+    void saveData();
     void updateFolderList();
     void updateNoteList();
     void updateNoteEditor();
