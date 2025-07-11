@@ -16,6 +16,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     networkManager = new QNetworkAccessManager(this);
 
+    connect(ui->addFolderButton, &QPushButton::clicked, this, &MainWindow::onAddFolderClicked);
+    connect(ui->deleteFolderButton, &QPushButton::clicked, this, &MainWindow::onDeleteFolderClicked);
+
     connect(ui->folderList, &QListWidget::currentRowChanged, this, &MainWindow::onFolderSelectionChanged);
     connect(ui->noteList, &QListWidget::currentRowChanged, this, &MainWindow::onNoteSelectionChanged);
 
@@ -120,4 +123,26 @@ void MainWindow::saveData()
     QJsonDocument doc(root);
     file.write(doc.toJson());
     file.close();
+}
+
+void MainWindow::onAddFolderClicked()
+{
+    bool ok;
+    QString name = QInputDialog::getText(this, "Add Folder", "Folder name:", QLineEdit::Normal, "", &ok);
+    if (ok && !name.isEmpty()) {
+        folders.append({name, {}});
+        currentFolderIndex = folders.size() - 1;
+        updateFolderList();
+        updateNoteList();
+    }
+}
+
+void MainWindow::onDeleteFolderClicked()
+{
+    if (currentFolderIndex < 0 || currentFolderIndex >= folders.size()) return;
+    folders.removeAt(currentFolderIndex);
+    currentFolderIndex = qMin(currentFolderIndex, folders.size() - 1);
+    updateFolderList();
+    updateNoteList();
+    updateNoteEditor();
 }

@@ -19,6 +19,8 @@ public:
     ~MainWindow();
 
 private slots:
+    void onAddFolderClicked();
+    void onDeleteFolderClicked();
     void onFolderSelectionChanged();
     void onNoteSelectionChanged();
 
