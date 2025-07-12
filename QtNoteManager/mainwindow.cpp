@@ -36,12 +36,18 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::updateFolderList() {
+void MainWindow::updateFolderList()
+{
     ui->folderList->clear();
-    for (const Folder &folder : folders)
-        ui->folderList->addItem(folder.name);
+
+    for (int folderIndex = 0; folderIndex < folders.size(); ++folderIndex) {
+        const Folder &folderObject = folders.at(folderIndex);
+        ui->folderList->addItem(folderObject.name);
+    }
+
     if (!folders.isEmpty()) {
-        currentFolderIndex = qMin(currentFolderIndex, folders.size() - 1);
+        int lastAvailableIndex = folders.size() - 1;
+        currentFolderIndex = qMin(currentFolderIndex, lastAvailableIndex);
         ui->folderList->setCurrentRow(currentFolderIndex);
     }
 }
@@ -81,52 +87,71 @@ void MainWindow::onNoteSelectionChanged() {
 
 void MainWindow::loadData()
 {
-    QFile file("notes.json");
-    if (!file.open(QIODevice::ReadOnly)) return;
+    QFile inputFile("notes.json");
+    if (!inputFile.open(QIODevice::ReadOnly)) {
+        return;
+    }
 
-    QByteArray data = file.readAll();
-    file.close();
+    QByteArray jsonByteArray = inputFile.readAll();
+    inputFile.close();
 
-    QJsonDocument doc = QJsonDocument::fromJson(data);
-    if (!doc.isObject()) return;
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(jsonByteArray);
+    if (!jsonDocument.isObject()) {
+        return;
+    }
 
     folders.clear();
-    QJsonObject root = doc.object();
-    for (const QString &key : root.keys()) {
-        Folder folder;
-        folder.name = key;
-        QJsonArray notesArray = root[key].toArray();
-        for (const QJsonValue &noteVal : notesArray) {
-            QJsonObject noteObj = noteVal.toObject();
-            Note note;
-            note.title = noteObj["title"].toString();
-            note.content = noteObj["content"].toString();
-            folder.notes.append(note);
+
+    QJsonObject jsonRootObject = jsonDocument.object();
+    QStringList folderNameList = jsonRootObject.keys();
+
+    for (int folderIndex = 0; folderIndex < folderNameList.size(); ++folderIndex) {
+        QString folderName = folderNameList.at(folderIndex);
+        QJsonValue folderValue = jsonRootObject.value(folderName);
+        QJsonArray noteJsonArray = folderValue.toArray();
+
+        Folder folderObject;
+        folderObject.name = folderName;
+
+        for (int noteIndex = 0; noteIndex < noteJsonArray.size(); ++noteIndex) {
+            QJsonObject noteJsonObject = noteJsonArray.at(noteIndex).toObject();
+            Note noteObject;
+            noteObject.title = noteJsonObject.value("title").toString();
+            noteObject.content = noteJsonObject.value("content").toString();
+            folderObject.notes.append(noteObject);
         }
-        folders.append(folder);
+
+        folders.append(folderObject);
     }
 }
 
 void MainWindow::saveData()
 {
-    QFile file("notes.json");
-    if (!file.open(QIODevice::WriteOnly)) return;
-
-    QJsonObject root;
-    for (const Folder &folder : folders) {
-        QJsonArray notesArray;
-        for (const Note &note : folder.notes) {
-            QJsonObject obj;
-            obj["title"] = note.title;
-            obj["content"] = note.content;
-            notesArray.append(obj);
-        }
-        root[folder.name] = notesArray;
+    QFile outputFile("notes.json");
+    if (!outputFile.open(QIODevice::WriteOnly)) {
+        return;
     }
 
-    QJsonDocument doc(root);
-    file.write(doc.toJson());
-    file.close();
+    QJsonObject jsonRootObject;
+
+    for (int folderIndex = 0; folderIndex < folders.size(); ++folderIndex) {
+        const Folder &folderObject = folders.at(folderIndex);
+        QJsonArray noteJsonArray;
+
+        for (int noteIndex = 0; noteIndex < folderObject.notes.size(); ++noteIndex) {
+            const Note &noteObject = folderObject.notes.at(noteIndex);
+            QJsonObject noteJsonObject;
+            noteJsonObject.insert("title", noteObject.title);
+            noteJsonObject.insert("content", noteObject.content);
+            noteJsonArray.append(noteJsonObject);
+        }
+
+        jsonRootObject.insert(folderObject.name, noteJsonArray);
+    }
+
+    QJsonDocument jsonDocument(jsonRootObject);
+    outputFile.write(jsonDocument.toJson(QJsonDocument::Indented));
+    outputFile.close();
 }
 
 void MainWindow::onAddFolderClicked()
